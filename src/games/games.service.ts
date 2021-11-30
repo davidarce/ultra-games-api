@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { Between, LessThan, Repository } from 'typeorm';
@@ -10,13 +16,16 @@ import { Publisher } from './entities/publisher.entity';
 @Injectable()
 export class GamesService {
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectRepository(Game)
     private gamesRepository: Repository<Game>,
   ) {}
 
   async create(createGameDto: CreateGameDto): Promise<Game> {
     const gameEntity = plainToClass(Game, createGameDto);
-    return await this.gamesRepository.save(gameEntity);
+    const gameEntitySaved = await this.gamesRepository.save(gameEntity);
+    await this.cacheManager.reset();
+    return gameEntitySaved;
   }
 
   async syncGames(): Promise<void> {
@@ -50,11 +59,13 @@ export class GamesService {
     const updatedGameEntity = plainToClass(Game, updateGameDto);
     let gameToUpdate = { ...gameEntity, ...updatedGameEntity };
     await this.gamesRepository.save(gameToUpdate);
+    await this.cacheManager.reset();
   }
 
   async remove(id: number): Promise<void> {
     let gameEntity = await this.findOne(id);
     await this.gamesRepository.delete(gameEntity.id);
+    await this.cacheManager.reset();
   }
 
   private async removeOldGames() {
@@ -68,7 +79,10 @@ export class GamesService {
       },
     });
 
-    await this.gamesRepository.remove(gamesToRemove);
+    if (gamesToRemove.length > 0) {
+      await this.gamesRepository.remove(gamesToRemove);
+      await this.cacheManager.reset();
+    }
   }
 
   private async applyDiscount() {
@@ -85,14 +99,17 @@ export class GamesService {
       },
     });
 
-    const gamesToUpdate = await Promise.all(
-      gamesWithDisccount.map((game) => {
-        game.price = game.price - (game.price * 0.2);
-        console.log('new price: ', JSON.stringify(game.price));
-        return game;
-      }),
-    );
+    if (gamesWithDisccount.length > 0) {
+      const gamesToUpdate = await Promise.all(
+        gamesWithDisccount.map((game) => {
+          game.price = game.price - game.price * 0.2;
+          console.log('new price: ', JSON.stringify(game.price));
+          return game;
+        }),
+      );
 
-    await this.gamesRepository.save(gamesToUpdate);
+      await this.gamesRepository.save(gamesToUpdate);
+      await this.cacheManager.reset();
+    }
   }
 }
