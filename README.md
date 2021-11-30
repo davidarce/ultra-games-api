@@ -32,11 +32,14 @@ $ npm run start:prod
 ### With Docker ⛴
 
 ```bash
-# development
+# build project
 $ npm run build
 
-# 🔥 Hot reloading
+# run with docker compose
 $ docker compose up -d
+
+# down app
+$ docker compose down
 ```
 
 ##  Test
