@@ -1,0 +1,15 @@
+version: "3.3"
+
+services:
+  ultra-games-api:
+    image: ultra-games-api
+    container_name: ultra-games-api
+    build:
+      context: .
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      timeout: 10s
+      retries: 5
+      interval: 1s
+    ports:
+      - 3000:3000
