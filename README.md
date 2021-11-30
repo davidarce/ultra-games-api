@@ -56,8 +56,7 @@ $ npm run test:cov
 ```
 
 # 🔛 Endpoints
-
-[![Run in Postman](https://run.pstmn.io/button.svg)]()
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/030ed8d0fa753248dca4?action=collection%2Fimport)
 
 ```
 Create Game:
@@ -88,10 +87,20 @@ Delete game by id:
 
 - DELETE /api/games/:id
 
+healthcheck
+
+- GET /api/health
+
+Swagger documentation
+
+- GET /api/documentation
+
 ```
 
-## Documentation
+## 🧾 Documentation
 
 Open swagger documentation:
 
-[![Ultra Games API documentation](https://swagger.io/img/logo-og.png)](http://localhost:300/api/documentation)
+[Ultra Games API documentation][1]
+
+[1]: http://localhost:300/api/documentation
